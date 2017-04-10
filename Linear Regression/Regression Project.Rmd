@@ -1,0 +1,86 @@
+---
+title: "Coursera Regression Project"
+author: "Zhongyi Lin"
+date: "Saturday, April 25, 2015"
+---
+## Abstract
+In this mini project, the relation of two variables, automatic/manual variable (am) and miles per gallon variable (mpg), is investigated to answer the questions "Is an automatic or manual transmission better for MPG?". Also the the mpg difference between automatic and manual transmissions is quantatively defined. Techniques of exploratory data analysis are used in order to achieve the goal.
+
+## Analysis
+### Single variable regression
+
+At the very beginning, we firstly import the mtcars data and take a quick look at the head of it.
+
+```{r, echo=FALSE}
+data(mtcars)
+head(mtcars)
+```
+
+It can be observed that the automatic/manual variable (am) is binary. Setting am as the predictor and mpg as the outcome, we first try linear regression with binary independent variables on these two data sets then show the coefficients and plot the fitting line of the data.
+
+```{r, fig.width = 4, fig.height = 4}
+mpg <- mtcars$mpg
+am <- mtcars$am
+fit <- lm(mpg~am)
+fit$coefficients
+plot(am,mpg,main="Linearly fitting am and mpg")
+abline(fit)
+```
+
+From the distribution of the scattered points in the figure we can see that there is a significant difference on Miles per Gallon bewteen automatic and manual car. As indicated by the formula of the model, 
+
+$$ mpg_i = b_0 + b_1am_i + e_i,$$
+
+the difference between mpg(0) and mpg(1) is equal to b_1, the slope, the value of which is equal to 7.245 as shown above. This is to say, a manual car is expected to drive 7.245 miles more than a automatic car by burning one gallon of gasoline.
+
+To have a more detailed look at the result, we plot the results of the fitting to examine the normality of the residuals.
+
+```{r lm_result, fig.show='hide'}
+par(mfrow=c(2,2))
+plot(fit)
+```
+
+(See Fig.1 in appendix)
+It can be seen that the scattered points of the residual are randomly distributed in both sides of the 0 line. These points roughly form a horisontal band around the 0 line, and there is no single point standing out of the others. These characteristics means that the assumption of linearity is reasonable, the variances of the error terms are equal, and homoskedasticity is guaranteed.
+
+### Multi-variable analysis
+However, data provided in the mtcars package is of different aspects which describe a car as an integration. This means attributes other than am probably also contributes to the mpg variable. Thus a multi-variable analysis is necessary. Linear regression with multiple variable is conducted below.
+
+```{r}
+fit_mul <- lm(mpg~.,data=mtcars)
+summary(fit_mul)$coefficients
+```
+
+Obviously am and wt are the two variables contribute to mpg the most. It is intuitively understandable that heavier cars cost more fuel for driving the same mileage. Besides no sign inversion is shown in the result.
+
+Similar to previous analysis, therefore, the difference between mpg(0) and mpg(1) is equal to 2.520.
+
+We also check the assumption of linearity and homoskedasticity, which are both passed. (See Fig.2 in Appendix)
+
+## Comparison
+An ANOVA analysis can be applied here to compare the single varible and multi-variable regression.
+
+```{r}
+anova(fit,fit_mul)
+```
+
+F-value larger than 1 and p-value less than 0.05 reject the null hypothesis of the anova test and suggest that the multi-variable model is better than the single variable one in this case.
+
+## Conclusion
+In this mini project, single variable and multi-variable linear regression are applied to solve the two given problems. Regression diagonostics of both models are checked to guarantee the correct application. After comparison a conclusion is drawn that multi-variable linear regression is better in this analysis.
+
+<br><br>
+
+## Appendix
+#### Fig.1 Results of the single variable linear regression
+```{r, fig.height = 6, fig.width = 6, echo = FALSE}
+par(mfrow=c(2,2))
+plot(fit)
+```
+
+#### Fig.2 Results of the multiple variable linear regression
+```{r, fig.height = 6, fig.width = 6, echo = FALSE}
+par(mfrow=c(2,2))
+plot(fit_mul)
+```
+

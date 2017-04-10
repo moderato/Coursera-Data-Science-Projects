@@ -1,0 +1,72 @@
+---
+title: "Coursera Reproducible Research Project 2: Analysis of harm and loss caused by natural disasters in the US"
+output: html_document
+---
+
+## Synopsis:  
+In this project, both the harm to the population and the economic loss caused by the natural disasters happened in the US during 1950 and November 2011 are analyzed. The loaded database are firstly preprocessed, i.e. filling NAs, mapping new values, then splitted by event types and processed. At the end of this report, the most harmful events on population health, and property/crop damage will be shown.
+  
+## Data Processing:
+  
+The following chunk of r code loads the data and the necessary library, as well as sets the working directory.
+  
+```{r, echo=TRUE}
+library(plyr)
+library(ggplot2)
+# setwd("/Users/moderato/Desktop/r_wd")
+data <- read.csv("repdata-data-StormData.csv")
+```
+  
+The data should be preprocessed before analyzing. According to the given documentation, the parameters in column PROPDMGEXP and CROPDMGEXP are replaced by corresponding multiplers which are all multiples of 10. Also the names of these two columns are changed, and the NAs are filled with 0.
+  
+```{r, echo=TRUE, cache=TRUE}
+data$PROPDMGEXP <- revalue(data$PROPDMGEXP, c("-"="0", "?"="0", "+"="1","0"="10","1"="10","2"="10","3"="10","4"="10","5"="10","6"="10","7"="10","8"="10","B"="1000000000","h"="100","H"="100","K"="1000","m"="1000000","M"="1000000"))
+data$PROPDMG[data$PROPDMG == ""] <- 0
+data$PROPDMGEXP[data$PROPDMGEXP == ""] <- 0
+names(data)[26] <- "PROPDMGMUL"
+
+data$CROPDMGEXP <- revalue(data$CROPDMGEXP, c("?"="0", "0"="10","2"="10","B"="1000000000","k"="1000","K"="1000","m"="1000000","M"="1000000"))
+data$CROPDMG[data$CROPDMG == ""] <- 0
+data$CROPDMGEXP[data$CROPDMGEXP == ""] <- 0
+names(data)[28] <- "CROPDMGMUL"
+```
+  
+Now the database is ready to be used. We split it by event types. Then the harm and loss caused by different events are summed and sorted in a decreasing order. The first six items of each analysis are shown in the following result section.
+  
+```{r, echo=TRUE}
+splittedByEvent <- split(data, data$EVTYPE)
+fatalities <- sort(sapply(splittedByEvent, function(x){sum(x[,23], na.rm=TRUE)}), decreasing = TRUE)
+injuries <- sort(sapply(splittedByEvent, function(x){sum(x[,24], na.rm=TRUE)}), decreasing = TRUE)
+propCropDamage <- sort(sapply(splittedByEvent, function(x){sum(as.numeric(x[,25])*as.numeric(x[,26])+as.numeric(x[,27])*as.numeric(x[,28]), na.rm=TRUE)}), decreasing = TRUE)
+```
+  
+## Results:
+  
+### Fatalities:
+```{r, echo=TRUE}
+head(fatalities)
+names1 <- names(head(fatalities))
+values1 <- head(fatalities)
+df1 <- data.frame(names1, values1)
+ggplot(data = df1, aes(x = df1$names1, y = df1$values1)) + geom_bar(stat = "identity") + theme(axis.text.x =     element_text(angle = 90, hjust = 1)) + xlab("Event Type") + ylab("# of fatalities") + ggtitle("Top 6 events causing most severe fatalities")
+```
+  
+### Injuries:
+```{r, echo=TRUE}
+head(injuries)
+names2 <- names(head(injuries))
+values2 <- head(injuries)
+df2 <- data.frame(names2, values2)
+ggplot(data = df2, aes(x = df2$names2, y = df2$values2)) + geom_bar(stat = "identity") + theme(axis.text.x =     element_text(angle = 90, hjust = 1)) + xlab("Event Type") + ylab("# of injuries") + ggtitle("Top 6 events causing most severe population injuries")
+```
+  
+### Property and crop damage
+```{r, echo=TRUE}
+head(propCropDamage)
+names3 <- names(head(propCropDamage))
+values3 <- head(propCropDamage)
+df3 <- data.frame(names3, values3)
+ggplot(data = df3, aes(x = df3$names3, y = df3$values3)) + geom_bar(stat = "identity") + theme(axis.text.x =     element_text(angle = 90, hjust = 1)) + xlab("Event Type") + ylab("Total loss of property and crop") + ggtitle("Top 6 events causing most loss of property and crop")
+```
+
+According to the analysis above, a conclusion can be drawn that tornado is the most dangerous natural disaster in the US during this period.

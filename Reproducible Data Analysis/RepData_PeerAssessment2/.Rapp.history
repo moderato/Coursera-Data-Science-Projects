@@ -1,0 +1,7 @@
+install.packages("data.table")
+library(data.table)
+setwd("/Users/moderato/Desktop/r_wd")
+source("quiz2_1.r")
+0
+0
+exit

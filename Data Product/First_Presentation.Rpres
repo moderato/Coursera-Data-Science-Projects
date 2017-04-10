@@ -1,0 +1,69 @@
+Iris Prediction Shiny App
+========================================================
+```{r, echo=FALSE, results='hide'}
+library(shiny)
+library(caret)
+library(ggplot2)
+data(iris)
+Sys.setlocale("LC_TIME", "en_US.UTF-8")
+```
+
+author: Zhongyi LIN  
+date: `r format(Sys.Date(), format="%B %d %Y")`
+
+Overview
+========================================================
+
+This interactive Shiny application is based on the Iris data set and designed for fast and customized prediction. By specifying the following features:
+
+- Two methods: random forest & decision trees (using radio button)
+- Training set ratio: 0.6, 0.7, 0.75 or 0.8 (using radio button)
+- Four predictors: sepal length, sepal width, petal length and petal width (using checkboxes)
+
+one can perform quick prediction on iris species. When prediction is done, summary of the model, and confusion matrix, plots and comparison table of the results will be shown in tab panels.
+
+Libraries needed: shiny, caret, ggplot2
+
+Training Code Example
+========================================================
+
+```{r}
+ratio <- 0.6
+
+set.seed(3833)
+index <- createDataPartition(iris$Species, p=ratio)[[1]]
+training <- iris[index,]
+testing <- iris[-index,]
+
+set.seed(125)
+modelFit <- train(training[,1:4], training[,5], method="rf")
+Prediction <- predict(modelFit, testing)
+Fault <- Prediction == testing$Species
+result <- data.frame(testing, Prediction, Fault)
+fault <- result[Fault==FALSE,]
+```
+
+Confusion Matrix Example
+========================================================
+Only part of the confusion matrix is shown here.
+
+```{r, results='hide'}
+confusionMatrix(Prediction, testing$Species)
+```
+```{r,echo=FALSE}
+confusionMatrix(Prediction, testing$Species)$table
+confusionMatrix(Prediction, testing$Species)$overall
+```
+
+Plot Example
+========================================================
+Results are plotted using the ggplot2 plotting system. Variables are represented by different aesthetic features, i.e. size, color, shape. Error prediction are marked by black dots.
+
+```{r, echo=FALSE}
+name <- names(result)
+image <- ggplot(result, aes_string(name[1], name[2])) + geom_point(aes_string(color=name[6], shape=name[5], size=name[3], alpha=name[4])) + scale_color_manual(values=c("#330033", "red", "#3399FF")) + scale_size_continuous(range = c(3,8)) + geom_point(data=fault, aes_string(name[1], name[2]), color="black")  
+```
+
+```{r, echo=FALSE}
+plot(image)
+```
